@@ -1,0 +1,11 @@
+# python
+*pycache*
+
+# Affix
+*.zip
+*.log
+
+# Folders
+data/*
+plot/*
+exp/*
