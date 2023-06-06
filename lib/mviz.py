@@ -21,7 +21,7 @@ def visSpk(ts, es, path=None):
         es (array): spike events
         path (string, optional): save path of image. Defaults to None.
     """
-    plt.figure()
+    plt.figure(figsize=(np.max(ts)/100, np.max(es)/np.max(ts)*100))
     plt.scatter(ts, es, s=1, marker='.')
     plt.xlabel('Time [ms]')
     plt.ylabel('Neuron')

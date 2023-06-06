@@ -32,8 +32,8 @@ def main():
     # simulation setting
     parser.add_argument('--epoch', type=int, help='number of epochs', default=2)
     parser.add_argument('--T', type=int, help='simulation time', default=3000)
-    parser.add_argument('--Nm', type=int, help='number of MSNs', default=200)
-    parser.add_argument('--Nf', type=int, help='number of FSIs', default=20)
+    parser.add_argument('--Nm', type=int, help='number of MSNs', default=5000)
+    parser.add_argument('--Nf', type=int, help='number of FSIs', default=100)
     # input setting
     parser.add_argument('--W', type=float, help='within-pool correlation', default=0.1)
     parser.add_argument('--B', type=float, help='between-pool correlation', default=0.1)
@@ -70,10 +70,10 @@ def main():
 
     # connection strengths
     Js = [  [1.1, 1.1, 1.1],
-            [1.6, 1.6, 0.8],
+            [2.0, 2.0, 0.8],
             [0.3, 0.3, 0.],
             [0.3, 0.3, 0.],
-            [0.9, 0.9, 0.]]
+            [0.2, 0.2, 0.]]
 
     # initialization of NEST
     msd = int(datetime.now().strftime("%m%d%H%M%S"))
@@ -91,16 +91,14 @@ def main():
             nPops[ntype] = nest.Create('iaf_cond_alpha', nnum)
             nest.SetStatus(nPops[ntype], nparam)
 
-    print(nest.GetStatus(nPops['M1'][0]))
-
     # input
     print('inputs')
     # background
     if args.Nf > 0:
-        bkgM = nest.Create('poisson_generator', 1, {'rate': 7.0e3})
+        bkgM = nest.Create('poisson_generator', 1, {'rate': 6.9e3})
     else:
         bkgM = nest.Create('poisson_generator', 1, {'rate': 6.2e3})
-    bkgF = nest.Create('poisson_generator', 1, {'rate': 7.2e3})
+    bkgF = nest.Create('poisson_generator', 1, {'rate': 6.9e3})
     # stimulus
     B, W = args.B, args.W
     assert B > 0
@@ -129,7 +127,7 @@ def main():
     syn_spec = {'synapse_model': 'static_synapse', 'weight': -Js[2][0], 'delay': args.D}
     nest.Connect(nPops['M1']+nPops['M2'], nPops['M1']+nPops['M2'], con_spec, syn_spec)
     if args.Nf > 0:
-        con_spec = {'rule': 'fixed_indegree', 'indegree': 20}
+        con_spec = {'rule': 'fixed_indegree', 'indegree': 100}
         syn_spec ={'synapse_model': 'static_synapse', 'weight': -Js[-1][0], 'delay': 1.0}
         nest.Connect(nPops['FSI'], nPops['M1'] + nPops['M2'], con_spec, syn_spec)
 
@@ -177,7 +175,8 @@ def main():
     # spikes
     spikeEvents = nest.GetStatus(spikeDetector, 'events')[0]
     spikeTimes, spikeIds = spikeEvents['times'], spikeEvents['senders']
-    visSpk(spikeTimes, spikeIds, path=spkpath + 'spk')
+    mask = (spikeIds > np.sum(nNums)-200) & (spikeIds <= np.sum(nNums))
+    visSpk(spikeTimes[mask], spikeIds[mask]-np.sum(nNums)+200, path=spkpath + 'spk')
 
     # firing rates
     idBins = np.concatenate([[0], np.cumsum(nNums)]) + 1
