@@ -6,39 +6,36 @@ THREAD=6
 
 sim=1
 
-# epoch=1
-# T=1000
-epoch=10
 T=2500
 
-Nm=2500
+Nm=2000
 
-# rm -r ./data/cor*
-# rm -r ./plot/cor*
+rm -r ./data/pls*
+rm -r ./plot/pls*
 
 # simulations
 if [ $sim -gt 0 ]
 then
-    # for delay in 1.0 2.0 3.0
-    for delay in 2.0
+    # for S in 10.0
+    for S in 2.0 5.0 10.0 15.0 20.0
     do
-        # for Nf in 0 25
-        for Nf in 0 25 30 50 90 150 250
+        # for delay in 1.0
+        for delay in 1.0 2.0 3.0
         do
-            # for W in 0.01 0.5
-            for W in 0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5
+            # for Nf in 0 20 200
+            for Nf in 0 20 50 100 200
             do
-                # for B in 0.5
+                # for B in -0.1 0.5
                 for B in 0.1 0.3 0.5 0.7 0.9
                 do
                     echo $COUNTER
                     if [ $COUNTER == $THREAD ]
                     then
-                        python runcor.py --Nm $Nm --Nf $Nf --W $W --B $B --epoch $epoch --T $T --D $delay
+                        python runpls.py --Nm $Nm --Nf $Nf --S $S --B $B --T $T --D $delay
                         wait
                         COUNTER=1
                     else
-                        python runcor.py --Nm $Nm --Nf $Nf --W $W --B $B --epoch $epoch --T $T --D $delay &
+                        python runpls.py --Nm $Nm --Nf $Nf --S $S --B $B --T $T --D $delay &
                         COUNTER=$(( COUNTER + 1 ))
                     fi
                 done

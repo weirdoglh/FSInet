@@ -31,8 +31,8 @@ def main():
     # simulation setting
     parser.add_argument('--epoch', type=int, help='number of epochs', default=2)
     parser.add_argument('--T', type=int, help='simulation time', default=1000)
-    parser.add_argument('--Nm', type=int, help='number of MSNs', default=2500)
-    parser.add_argument('--Nf', type=int, help='number of FSIs', default=25)
+    parser.add_argument('--Nm', type=int, help='number of MSNs', default=2000)
+    parser.add_argument('--Nf', type=int, help='number of FSIs', default=50)
     # input setting
     parser.add_argument('--W', type=float, help='within-pool correlation', default=0.1)
     parser.add_argument('--B', type=float, help='between-pool correlation', default=0.1)
@@ -66,6 +66,7 @@ def main():
 
     MSN_deg = int(nNums[0]/10)
     FSI_deg = int(nNums[0]/100*0.6)
+    MSN_num = int(nNums[0]/10/2)
     CTX_deg = 100
 
     # input
@@ -74,17 +75,11 @@ def main():
     if W > 0:
         nstm = int(CTX_deg / W)
 
-    # # very strong FSI inhibition compared to MSN
-    # Js = [  [1.1, 1.0],
-    #         [4.0, 0.7],
-    #         [0.1, 0.],
-    #         [0.5, 0.]]
-
-    # very strong FSI inhibition compared to MSN
-    Js = [  [1.05, 1.0],
-            [2.8, 0.7],
-            [0.07, 0.],
-            [0.35, 0.]]
+    # strong FSI inhibition compared to MSN
+    Js = [  [1.0, 1.0],
+            [6.5, 0.7],
+            [0.1, 0.],
+            [0.5, 0.]]
 
     # reset kernel
     msd = int(time.time() * 1000.0) % 4294967295
@@ -102,12 +97,8 @@ def main():
         nest.SetStatus(nPops['FSI'], nParams[-1])
 
     # background noise
-    if args.Nf > 0:
-        bkgM = nest.Create('poisson_generator', 1, {'rate': 7.3e3})
-    else:
-        # bkgM = nest.Create('poisson_generator', 1, {'rate': 3.65e3})
-        bkgM = nest.Create('poisson_generator', 1, {'rate': 4.8e3})
-    bkgF = nest.Create('poisson_generator', 1, {'rate': 7.3e3})
+    bkgF = nest.Create('poisson_generator', 1, {'rate': 7.4e3})
+    bkgM = nest.Create('poisson_generator', 1, {'rate': 8.4e3})
     # cortical input
     if W > 0:
         # rate setting
@@ -127,8 +118,8 @@ def main():
         # cortical stimulus (excitatory)
         con_spec = {'rule': 'fixed_indegree', 'indegree': CTX_deg}
         syn_spec ={'synapse_model': 'static_synapse', 'weight': Js[1][0], 'delay': 2.0}
-        nest.Connect(stm[:nstm], nPops['MSN'][:nNums[0]//2], con_spec, syn_spec)
-        nest.Connect(stm[-nstm:], nPops['MSN'][nNums[0]//2:], con_spec, syn_spec)
+        nest.Connect(stm[:nstm], nPops['MSN'][nNums[0]//2-MSN_num:nNums[0]//2], con_spec, syn_spec)
+        nest.Connect(stm[-nstm:], nPops['MSN'][nNums[0]//2:nNums[0]//2+MSN_num], con_spec, syn_spec)
         if args.Nf > 0:
             syn_spec ={'synapse_model': 'static_synapse', 'weight': Js[1][-1], 'delay': 1.0}
             nest.Connect(stm, nPops['FSI'], con_spec, syn_spec)
@@ -139,7 +130,7 @@ def main():
     if args.Nf > 0:
         con_spec = {'rule': 'fixed_indegree', 'indegree': FSI_deg}
         syn_spec ={'synapse_model': 'static_synapse', 'weight': -Js[-1][0], 'delay': 1.0}
-        nest.Connect(nPops['FSI'], nPops['MSN'], con_spec, syn_spec)
+        nest.Connect(nPops['FSI'], nPops['MSN'][nNums[0]//2-2*MSN_num:nNums[0]//2+2*MSN_num], con_spec, syn_spec)
 
     # record device
     print('link devices')
@@ -192,8 +183,8 @@ def main():
             pulseTimes, pulseIds = pulseEvents['times'], pulseEvents['senders']
             visSpk(pulseTimes, pulseIds-nNums[0], path=spkpath + 'input')
 
-        mask = (spikeIds > nNums[0]-100) & (spikeIds <= nNums[0] + 100)
-        visSpk(spikeTimes[mask], spikeIds[mask]-nNums[0]+100, path=spkpath + 'spk')
+        mask = (spikeIds > nNums[0]//2 - MSN_num) & (spikeIds <= nNums[0]//2 + MSN_num)
+        visSpk(spikeTimes[mask], spikeIds[mask]-nNums[0]//2+MSN_num, path=spkpath + 'spk')
 
         # multimeter
         multiEvents = [nest.GetStatus(detector)[0]['events'] for detector in mulDetects]
