@@ -21,11 +21,7 @@ if [ $sim -gt 0 ]
 then
     
     # for Nf in 0 25 250
-<<<<<<< HEAD
     for Nf in 0 25 30 50 100 250
-=======
-    for Nf in 0 25 30 60 150 250
->>>>>>> dae996978563ade9e2a3b1a8d757e5c00be49b07
     do
         # for W in -0.1 0.1
         for W in 0.01 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5
