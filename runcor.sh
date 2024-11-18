@@ -19,7 +19,6 @@ Nm=2500
 # simulations
 if [ $sim -gt 0 ]
 then
-    # for delay in 1.0 2.0 3.0
     for delay in 2.0
     do
         # for Nf in 0 25
