@@ -5,6 +5,9 @@
 *.zip
 *.log
 
+# Special
+.DS_Store
+
 # Folders
 data/*
 plot/*
