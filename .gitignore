@@ -8,6 +8,6 @@
 # Special
 .DS_Store
 
-# Folders
-data/*
-plot/*
+# # Folders
+# data/*
+# plot/*
